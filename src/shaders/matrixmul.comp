@@ -1,0 +1,32 @@
+#version 450
+#extension GL_EXT_debug_printf : enable
+
+#include "vulkan.h"
+
+layout(local_size_x = 1, local_size_y = 1) in;
+layout(std430, binding = 0) readonly buffer inputMatrixA {
+  float A[MATRIX_SIZE * MATRIX_SIZE];
+};
+layout(std430, binding = 1) readonly buffer inputMatrixB {
+  float B[MATRIX_SIZE * MATRIX_SIZE];
+};
+layout(std430, binding = 2) buffer outputMatrixC {
+  float C[MATRIX_SIZE * MATRIX_SIZE];
+};
+
+void main() {
+  uint row = gl_GlobalInvocationID.x;
+  uint col = gl_GlobalInvocationID.y;
+  float sum = 0.0f;
+  debugPrintfEXT("(%d, %d) A: %f, %f, %f, %f\n", row, col, A[0], A[1], A[2],
+                 A[3]);
+  debugPrintfEXT("(%d, %d) B: %f, %f, %f, %f\n", row, col, B[0], B[1], B[2],
+                 B[3]);
+
+  for (uint i = 0; i < 2; i++) {
+    debugPrintfEXT("Accessing A[%d] and B[%d]\n", row * 2 + i, i * 2 + col);
+    sum += A[row * 2 + i] * B[i * 2 + col];
+  }
+  debugPrintfEXT("Computed value for C[%d][%d] = %f\n", row, col, sum);
+  C[row * 2 + col] = sum;
+}
